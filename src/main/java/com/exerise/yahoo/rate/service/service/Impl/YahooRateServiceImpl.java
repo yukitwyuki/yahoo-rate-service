@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +38,7 @@ public class YahooRateServiceImpl implements YahooRateService {
     private final ExecutorService executorService = Executors.newFixedThreadPool(20);
     @Override
     @SneakyThrows
-    public YahooRateResponse getFormYahoo(String baseCcy, String termCcy) {
+    public YahooRateResponse getFormYahoo(String baseCcy, String termCcy, Boolean defaultCcy) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(yahooProperties.getEndpoint());
         Map<String, String> uriVariable = new HashMap<>();
         YahooRateResponse yahooRateResponse = new YahooRateResponse();
@@ -55,6 +56,14 @@ public class YahooRateServiceImpl implements YahooRateService {
         try {
             ResponseEntity<QuotedResponse> res = future.get();
             String rate = res.getBody().getQuoteResponse().getResults().get(0).getRegularMarketPrice().getFormattedRMP();
+            if(defaultCcy){
+                BigDecimal multiply = new BigDecimal(1000);
+                BigDecimal convertedRate = new BigDecimal(rate);
+                convertedRate = multiply.multiply(convertedRate);
+                rate = convertedRate.toString();
+                termCcy = yahooProperties.getDefaultBaseCcy();
+                baseCcy = yahooProperties.getDefaultTermCcy();
+            }
             logger.info("Successfully get rate from Yahoo - {}{} : {}", baseCcy, termCcy, rate);
 
             if (res.getStatusCode() == HttpStatus.OK) {

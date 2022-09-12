@@ -5,5 +5,5 @@ import lombok.SneakyThrows;
 
 public interface YahooRateService {
     @SneakyThrows
-    YahooRateResponse getFormYahoo(String baseCcy, String termCcy);
+    YahooRateResponse getFormYahoo(String baseCcy, String termCcy, Boolean defaultCcy);
 }

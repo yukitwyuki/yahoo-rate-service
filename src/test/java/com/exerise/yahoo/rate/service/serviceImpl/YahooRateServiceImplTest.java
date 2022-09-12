@@ -1,7 +1,6 @@
 package com.exerise.yahoo.rate.service.serviceImpl;
 
 import com.exerise.yahoo.rate.service.config.YahooProperties;
-import com.exerise.yahoo.rate.service.controller.YahooRateController;
 import com.exerise.yahoo.rate.service.model.*;
 import com.exerise.yahoo.rate.service.service.Impl.YahooRateServiceImpl;
 import lombok.SneakyThrows;
@@ -14,7 +13,6 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -98,7 +96,7 @@ public class YahooRateServiceImplTest {
     @Test
     @SneakyThrows
     public void testGetRateFromYahooFinanceWithoutError() {
-        YahooRateResponse yahooRateResponse = yahooRateServicSpy.getFormYahoo("JPY","HKD");
+        YahooRateResponse yahooRateResponse = yahooRateServicSpy.getFormYahoo("JPY","HKD", true);
         verify(yahooRateServicSpy).getQuotedFromYahooFinance(any());
     }
 
