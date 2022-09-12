@@ -31,7 +31,7 @@ public class YahooRateController {
         String baseCcy = yahooProperties.getDefaultBaseCcy();
         String termCcy = yahooProperties.getDefaultTermCcy();
         logger.info("Get {}.{} from Yahoo Finance.", baseCcy, termCcy);
-        YahooRateResponse response = yahooRateService.getFormYahoo(baseCcy, termCcy);
+        YahooRateResponse response = yahooRateService.getFormYahoo(baseCcy, termCcy, true);
         if(response == null)
             throw new Exception("Cannot get rate of Ccy Pair!");
         logger.info("Get last updated rate {}.{} from Yahoo Finance - {}.", baseCcy, termCcy, response.getRate());
@@ -42,7 +42,7 @@ public class YahooRateController {
     public ResponseEntity<YahooRateResponse> getYahooRateByCcyPair(@PathVariable String baseCcy,
                                                                    @PathVariable String termCcy) {
         logger.info("Get {}.{} from Yahoo Finance.", baseCcy, termCcy);
-        YahooRateResponse response = yahooRateService.getFormYahoo(baseCcy, termCcy);
+        YahooRateResponse response = yahooRateService.getFormYahoo(baseCcy, termCcy, false);
         if(response == null)
             throw new Exception("Cannot get rate of Ccy Pair!");
         logger.info("Get last updated rate {}.{} from Yahoo Finance - {}.", baseCcy, termCcy, response.getRate());

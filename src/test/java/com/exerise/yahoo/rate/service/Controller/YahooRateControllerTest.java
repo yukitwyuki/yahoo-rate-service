@@ -15,6 +15,7 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -41,7 +42,7 @@ public class YahooRateControllerTest {
         mockResponse.setCcyPair("JPYCNY");
         mockResponse.setTimestamp(date);
         mockResponse.setQuotedTimestamp(date);
-        when(yahooRateService.getFormYahoo(any(),any())).thenReturn(mockResponse);
+        when(yahooRateService.getFormYahoo(any(), any(), anyBoolean())).thenReturn(mockResponse);
         ResponseEntity<YahooRateResponse> responseEntity = yahooRateController.getYahooRate();
         assertEquals(("0.1234"), responseEntity.getBody().getRate());
         assertEquals(date, responseEntity.getBody().getTimestamp());
@@ -52,7 +53,7 @@ public class YahooRateControllerTest {
     @Test
     @SneakyThrows
     public void testGetExceptionYahooRate() {
-        when(yahooRateService.getFormYahoo(any(),any())).thenThrow(RuntimeException.class);
+        when(yahooRateService.getFormYahoo(any(), any(), anyBoolean())).thenThrow(RuntimeException.class);
         assertThrows(Exception.class, () -> yahooRateController.getYahooRate());
     }
 
@@ -65,7 +66,7 @@ public class YahooRateControllerTest {
         mockResponse.setTimestamp(date);
         mockResponse.setCcyPair("JPYCNY");
         mockResponse.setQuotedTimestamp(date);
-        when(yahooRateService.getFormYahoo(any(), any())).thenReturn(mockResponse);
+        when(yahooRateService.getFormYahoo(any(), any(), anyBoolean())).thenReturn(mockResponse);
         ResponseEntity<YahooRateResponse> responseEntity = yahooRateController.getYahooRate();
         assertNull(responseEntity.getBody().getRate());
         assertEquals(date, responseEntity.getBody().getTimestamp());
@@ -75,12 +76,12 @@ public class YahooRateControllerTest {
 
     @Test
     public void testGetNullYahooRateWithCcyException() {
-        when(yahooRateService.getFormYahoo(any(), any())).thenReturn(null);
+        when(yahooRateService.getFormYahoo(any(), any(), anyBoolean())).thenReturn(null);
         assertThrows(Exception.class, () -> yahooRateController.getYahooRateByCcyPair("TES","TEST"));
     }
     @Test
     public void testGetNullYahooRateException() {
-        when(yahooRateService.getFormYahoo(any(), any())).thenReturn(null);
+        when(yahooRateService.getFormYahoo(any(), any(), anyBoolean())).thenReturn(null);
         assertThrows(Exception.class, () -> yahooRateController.getYahooRate());
 
     }
