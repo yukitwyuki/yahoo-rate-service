@@ -12,4 +12,6 @@ import org.springframework.context.annotation.Configuration;
 public class YahooProperties {
     public String endpoint;
     public String query;
+    public String defaultBaseCcy;
+    public String defaultTermCcy;
 }

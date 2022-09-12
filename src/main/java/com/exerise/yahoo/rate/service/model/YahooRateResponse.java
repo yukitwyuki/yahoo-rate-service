@@ -3,10 +3,13 @@ package com.exerise.yahoo.rate.service.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
+import java.util.Date;
 
 @Setter
 @Getter
 public class YahooRateResponse {
-    BigDecimal rate;
+    String ccyPair;
+    String rate;
+    Date quotedTimestamp;
+    Date timestamp;
 }

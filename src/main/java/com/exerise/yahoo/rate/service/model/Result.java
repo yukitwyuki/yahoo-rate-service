@@ -4,10 +4,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 @Getter
 @Setter
-public class Result{
+public class Result {
+    @Getter
+    @Setter
+    public class RegularMarketTime {
+        @JsonProperty("raw")
+        private long regularMarketTimestamp;
+    }
+
     @JsonProperty("region")
     private String region;
 
@@ -18,7 +24,7 @@ public class Result{
     private String quoteSourceName;
 
     @JsonProperty("regularMarketPrice")
-    private BigDecimal regularMarketPrice;
+    private RegularMarketPrice regularMarketPrice;
 
     @JsonProperty("marketState")
     private String marketState;
@@ -32,4 +38,6 @@ public class Result{
     @JsonProperty("symbol")
     private String symbol;
 
+    @JsonProperty("regularMarketTime")
+    private RegularMarketTime regularMarketTime;
 }

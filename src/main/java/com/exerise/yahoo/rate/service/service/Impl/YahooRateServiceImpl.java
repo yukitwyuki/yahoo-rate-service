@@ -4,11 +4,11 @@ import com.exerise.yahoo.rate.service.config.YahooProperties;
 import com.exerise.yahoo.rate.service.model.QuotedResponse;
 import com.exerise.yahoo.rate.service.model.YahooRateResponse;
 import com.exerise.yahoo.rate.service.service.YahooRateService;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -23,124 +23,67 @@ import java.util.concurrent.Executors;
 @EnableConfigurationProperties(YahooProperties.class)
 public class YahooRateServiceImpl implements YahooRateService {
     Logger logger = LoggerFactory.getLogger(YahooRateServiceImpl.class);
-
-    private YahooProperties yahooProperties;
-    private RestTemplate restTemplate = new RestTemplate();
+    private final YahooProperties yahooProperties;
+    public RestTemplate restTemplate;
 
     @Autowired
-    public YahooRateServiceImpl(YahooProperties yahooProperties
+    public YahooRateServiceImpl(YahooProperties yahooProperties,
+                                RestTemplate restTemplate
                                 ){
         this.yahooProperties = yahooProperties;
+        this.restTemplate = restTemplate;
     }
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(20);
-    private ExecutorService executorService2 = Executors.newFixedThreadPool(15);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(20);
     @Override
-    public YahooRateResponse getFormYahoo2(String baseCcy, String termCcy) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(yahooProperties.getEndpoint());
-
-        Map<String, String> uriVariable = new HashMap<>();
-        YahooRateResponse yahooRateResponse = new YahooRateResponse();
-        uriVariable.put("symbols", baseCcy + termCcy + "=X");
-        uriVariable.put("fields", "regularMarketPrice");
-        for (Map.Entry<String, String> var : uriVariable.entrySet()) {
-            uriComponentsBuilder.queryParam(var.getKey(), var.getValue());
-        }
-
-        String rateUrl = uriComponentsBuilder.build().toString();
-        logger.info(rateUrl);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-
-        CompletableFuture<ResponseEntity<QuotedResponse>> future = createFutureCall2(rateUrl, entity);
-        try {
-            ResponseEntity<QuotedResponse> res = future.get();
-            logger.info(res.getBody().getQuoteResponse().getResults()[0].getRegularMarketPrice().toString());
-            if (res.getStatusCode() == HttpStatus.OK) {
-                yahooRateResponse.setRate(res.getBody().getQuoteResponse().getResults()[0].getRegularMarketPrice());
-            }
-        }
-        catch (Exception e){
-            logger.info("getFormYahoo: {}", e.getMessage());
-            return null;
-        }
-        return yahooRateResponse;
-    }
-    public CompletableFuture<ResponseEntity<QuotedResponse>> createFutureCall2 (String rateUrl, HttpEntity<?> entity){
-        return CompletableFuture.supplyAsync(() -> getQuotedFromYahooFinance(rateUrl, entity), executorService2);
-    }
-    @Override
+    @SneakyThrows
     public YahooRateResponse getFormYahoo(String baseCcy, String termCcy) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(yahooProperties.getEndpoint());
-
         Map<String, String> uriVariable = new HashMap<>();
         YahooRateResponse yahooRateResponse = new YahooRateResponse();
         uriVariable.put("symbols", baseCcy + termCcy + "=X");
         uriVariable.put("fields", "regularMarketPrice");
+        uriVariable.put("formatted", "true");
         for (Map.Entry<String, String> var : uriVariable.entrySet()) {
             uriComponentsBuilder.queryParam(var.getKey(), var.getValue());
         }
 
         String rateUrl = uriComponentsBuilder.build().toString();
-        logger.info(rateUrl);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<?> entity = new HttpEntity<>(headers);
+        logger.info("Will Get rate from: {} ", rateUrl);
 
-        CompletableFuture<ResponseEntity<QuotedResponse>> future = createFutureCall(rateUrl, entity);
+        CompletableFuture<ResponseEntity<QuotedResponse>> future = createFutureCall(rateUrl);
         try {
             ResponseEntity<QuotedResponse> res = future.get();
-            logger.info(res.getBody().getQuoteResponse().getResults()[0].getRegularMarketPrice().toString());
+            String rate = res.getBody().getQuoteResponse().getResults().get(0).getRegularMarketPrice().getFormattedRMP();
+            logger.info("Successfully get rate from Yahoo - {}{} : {}", baseCcy, termCcy, rate);
+
             if (res.getStatusCode() == HttpStatus.OK) {
-                yahooRateResponse.setRate(res.getBody().getQuoteResponse().getResults()[0].getRegularMarketPrice());
+                yahooRateResponse.setRate(rate);
+                yahooRateResponse.setCcyPair(baseCcy + termCcy);
+                Date time = new Date((long)res.getBody().getQuoteResponse().getResults().get(0).getRegularMarketTime().getRegularMarketTimestamp()*1000);
+                yahooRateResponse.setQuotedTimestamp(time);
+                yahooRateResponse.setTimestamp(new java.util.Date());
             }
+            logger.info("yahooRateResponse - {}{} : {}", baseCcy, termCcy, yahooRateResponse);
         }
         catch (Exception e){
-            logger.info("getFormYahoo: {}", e.getMessage());
+            logger.info("Failed GetFormYahoo: {}", e.getMessage());
             return null;
         }
         return yahooRateResponse;
     }
-    public CompletableFuture<ResponseEntity<QuotedResponse>> createFutureCall (String rateUrl, HttpEntity<?> entity){
-        return CompletableFuture.supplyAsync(() -> getQuotedFromYahooFinance(rateUrl, entity), executorService);
+    @SneakyThrows
+    public CompletableFuture<ResponseEntity<QuotedResponse>> createFutureCall (String rateUrl){
+        return CompletableFuture.supplyAsync(() -> getQuotedFromYahooFinance(rateUrl), executorService);
     }
-    public YahooRateResponse getFormYahooSync(String baseCcy, String termCcy) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(yahooProperties.getEndpoint());
-
-        Map<String, String> uriVariable = new HashMap<>();
-        YahooRateResponse yahooRateResponse = new YahooRateResponse();
-        uriVariable.put("symbols", baseCcy + termCcy + "=X");
-        uriVariable.put("fields", "regularMarketPrice");
-        for (Map.Entry<String, String> var : uriVariable.entrySet()) {
-            uriComponentsBuilder.queryParam(var.getKey(), var.getValue());
-        }
-
-        String rateUrl = uriComponentsBuilder.build().toString();
-        logger.info(rateUrl);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-        ResponseEntity<QuotedResponse> res = getQuotedFromYahooFinance(rateUrl, entity);
-
-        logger.info(res.getBody().getQuoteResponse().getResults()[0].getRegularMarketPrice().toString());
-        if (res.getStatusCode() == HttpStatus.OK) {
-            yahooRateResponse.setRate(res.getBody().getQuoteResponse().getResults()[0].getRegularMarketPrice());
-        }
-
-        return yahooRateResponse;
-    }
-    public ResponseEntity<QuotedResponse> getQuotedFromYahooFinance(String rateUrl, HttpEntity<?> entity) {
+    @SneakyThrows
+    public ResponseEntity<QuotedResponse> getQuotedFromYahooFinance(String rateUrl) {
         try {
-            ResponseEntity<QuotedResponse> responseEntity = restTemplate.exchange(rateUrl,
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<QuotedResponse>() {
-                    });
-            logger.info(responseEntity.getBody().toString());
+            logger.info("Getting rate from: {} ", rateUrl);
+            ResponseEntity<QuotedResponse> responseEntity = restTemplate.getForEntity(rateUrl, QuotedResponse.class);
             return responseEntity;
         } catch (Exception e) {
-            logger.info("getQuotedFromYahooFinance: {}", e.getMessage());
+            logger.info("Failed GetQuotedFromYahooFinance: {}", e.getMessage());
             return null;
         }
 
