@@ -34,7 +34,7 @@ public class YahooRateController {
         YahooRateResponse response = yahooRateService.getFormYahoo(baseCcy, termCcy, true);
         if(response == null)
             throw new Exception("Cannot get rate of Ccy Pair!");
-        logger.info("Get last updated rate {}.{} from Yahoo Finance - {}.", baseCcy, termCcy, response.getRate());
+        logger.info("Get last updated rate {}.{} from Yahoo Finance - {}.", termCcy, baseCcy, response.getRate());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     @SneakyThrows
