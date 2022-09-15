@@ -1,4 +1,4 @@
-package com.exerise.yahoo.rate.service.handler;
+package com.exerise.yahoo.rate.service.Handler;
 
 import com.exerise.yahoo.rate.service.model.ErrorResponse;
 import org.slf4j.Logger;
