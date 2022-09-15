@@ -1,4 +1,4 @@
-package com.exerise.yahoo.rate.service.controller;
+package com.exerise.yahoo.rate.service.Controller;
 
 import com.exerise.yahoo.rate.service.config.YahooProperties;
 import com.exerise.yahoo.rate.service.model.YahooRateResponse;
